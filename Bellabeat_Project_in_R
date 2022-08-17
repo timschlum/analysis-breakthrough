@@ -1,0 +1,595 @@
+# "How can a wellness technology company play it smart?"
+
+Notebook detailing my work on Case Study 2 from the Google Data Analytics professional certificate capstone.
+
+A copy of the capstone project can be found here: [at this link](https://drive.google.com/file/d/1fZvb0RDhv7Wwna18W9DFL7dFquBJSUX5/view?usp=sharing)
+
+---
+# Ask Phase
+
+**Summary of the business problem**
+
+* Bellabeat, a high-tech manufacturer of health-focused products for women is looking to become a larger player in the global smart device market.
+
+**Stakeholders** :
+
+   * Urska Srsen - Cofounder and Chief Creative Officer of Bellabeat
+   * Sando Mur - Mathematician and cofounder, key member of Bellabeat executive team.
+
+CCO Urska Srsen has asked the marketing analytics team to leverage data collected from one of their wearable smart products in order to identify possible marketing opportunities based on existing user activity. Urska and cofounder Sando Mur are looking to learn about high-level insights that can be gleaned from user data in order to expand on previous success and grow Bellabeat business in the wearable technology market. Urska and Sando are looking to learn more about user behavior and how users interact with wearable technology in order to understand when, how, and through which means to market Bellabeat products.
+
+The analysis will focus on specific metrics of data collected by smart wearable technology such as heart rate, daily activity, steps, as well as mindfulness activities and sleep habits.
+---
+# Prepare and Process phases
+
+The suggested dataset for this project is the "FitBit Fitness Tracker Data" dataset available on Kaggle through Mobius (CC0: Public Domain). For the purpose of clarity, I will rename this dataset "BBDATA".
+
+* <u>FitBit Fitness Tracker Dataset Notes or BBDATA</u>
+    * Format:
+        * The data from the Kaggle Fitbit dataset is a series of spreadsheets saved as CSV files.
+        * Much of the data is long which creates many rows. As a result, the **heartrate_seconds_merged** file was too large to open in a spreadsheet. I will likely choose to open this file using R in this notebook in order to access its contents and not lose any of the data. This was the same for **minuteMETsNarrow_merged**.
+        * Long data issues also existed with **minuteCaloriesNarrow_merged**, **minuteIntensitiesNarrow_merged**, and **minuteStepsWide_merged**. However, each of these spreadsheets had a ‘wide’ version that allowed the data to be observed in spreadsheet form.
+    * Source:    
+        * I am confident in the credibility of this data as it is well referenced and sourced on the Kaggle community. It has been accessed by many users and is rated at the maximum of 10 on the Kaggle usability score.
+        * The data is credited as keeping its participants anonymous and it is publicly available on the internet. As long as I source this dataset appropriately it can be accessible and it has been collected in a way that ensures privacy and security.
+        * The data is original as it was collated from a primary source. It is comprehensive in its scope of available wearable fitness tracking data and it is well cited. It is not the most current information as it was originally published online 2 years ago.
+    * Limitations:    
+        * A limitation of this data is that it is not possible to verify if the participants in this dataset are women. This business case is focused on marketing towards women interested in wearing fitness technology geared towards them so the fitbit data may not be fully centered on this audience.
+
+As described in the case study prompt, the CCO has asked that more data be acquired from another source to supplement BBDATA. After a search of publicly available data, I have come across an analogous dataset titled PMDATA which was conducted using Fitbit Versa technology.
+
+* <u>PMDATA Notes</u>
+    * Format:
+        * This dataset is a pre-cleaned assortment of data from a group of participants using Fitbit Versa products to record daily activity.
+        * The owner of this dataset converted much of the data from JSON to the more immediately accessible CSV file format.
+        * This dataset offers additional data points on many of the metrics identified in our core dataset. It also provides information on the sex of the participants which helps us see if we are capturing and data from female participants. Out of the 16 participants, 3 were women.
+        * The data in this particular dataset is also more condensed and could provide a map of how to consolidate the larger spread of data from our primary dataset for analysis.
+    * Source:
+        * The data is well-sourced and indicates it was captured directly from participants in an academic study, referenced [here](https://dl.acm.org/doi/pdf/10.1145/3339825.3394926). 
+    * Limitations:
+        * The dataset has few limitations other than the reocurring issue of getting substantive and complete data releavant to our business problem. Even the PMDATA has very few confirmed female participants. This actually reflects a common methodological issue in studies relating to the health sciences which emphasize sampling primarily male groups in order to make analyses about varying health issues. More information about this issue can be found [here](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4800017/).
+* <u>Recommendations on limitations:</u>
+    * Despite the work I have laid out here relating to addressing the limitations of the data, I would recommend funding or pursuing more data that exclusively samples female participants in order to gain relevant data.
+
+### Sorting and filtering the data
+
+How is the data organized?:
+
+* <u>BBDATA</u>
+
+Covers April through May of 2016 (2 months)
+
+| Calories | Intensities | Steps | Heart Rate | Sleep |
+|:---------|:-----------:|:-----:|:----------:|:------:|
+| Daily | Daily | Daily| Per second | Daily|
+| Hourly | Hourly | Hourly | | Per minute|
+| Per minute | Per minute | Per second | | |
+
+* <u>PMDATA</u>
+
+Covers November 2019 through March 2020 (5 months)
+
+| Calories | Intensities | Steps | Distance (Km) | Sleep |
+|:---------|:-----------:|:-----:|:----------:|:------:|
+| Daily | Daily | Daily| Daily | Per second|
+| Hourly | Weekly | Hourly | Hourly | Daily|
+|Weekly | Monthly | Weekly | Weekly | Weekly |
+|Monthly | | Monthly | Monthly | Monthly |
+
+Both data sets share the **calories, intensities, steps, and sleep metrics** and record them on different time scales, from monthly records down to by the second. The most useful scale of time would likely be the daily sets as this is not too granular but still detailed enough to help us see change over time.
+
+* <u>Prior to working in R</u>
+
+Before importing the data into this workbook, I realize the dates for the BBDATA and PMDATA come in different formats.
+
+1. The BBDATA/date is in the "M/D/Y" format. The sleep data from this set also includes a date/time in the "M/D/Y HH:MM:SS" format. This will need to be addressed and changed to "Y-M-D" to match the PMDATA.
+
+2. The PMDATA already has its date format as "Y-M-D" so I do not change it.
+
+* <u>Consolidating the participant IDs</u>:
+
+As a result, I will merge the daily data for calories, intensities, steps, and sleep for my first pass at analysis for this data. To do so, I will focus on aligning the data by the participant ID. The PMDATA has a simple system for naming participants, using the "p##" format with each participant named sequentially (p01, p02, etc). I will adopt this convention for the BBDATA by continuing the count from where the PMDATA left off. This means the first participant in the BBDATA will be p17.
+
+Once the data has been correctly reformatted, I will merge the data sets together.
+
+`#installing my packages
+install.packages("tidyverse")
+install.packages("dplyr")
+install.packages("reshape2")
+
+#loading my packages
+library(tidyverse)
+library(dplyr)
+library(reshape2)
+
+#Importing the data from PMDATA
+pmData_dailyActivity <- read.csv("../input/pmdata-fitbit-versa-activity-data/pmdata_daily_activity_merged.csv")
+pmData_dailySleep <- read.csv("../input/pmdata-fitbit-versa-activity-data/pmdata_sleep_unedited.csv")
+
+#Importing the data from BBDATA
+bbData_dailyCalories <- read.csv("../input/fitbit/Fitabase Data 4.12.16-5.12.16/dailyCalories_merged.csv")
+bbData_dailyIntensities <- read.csv("../input/fitbit/Fitabase Data 4.12.16-5.12.16/dailyIntensities_merged.csv")
+bbData_dailySteps <- read.csv("../input/fitbit/Fitabase Data 4.12.16-5.12.16/dailySteps_merged.csv")
+bbData_sleepDay <- read.csv("../input/fitbit/Fitabase Data 4.12.16-5.12.16/sleepDay_merged.csv")
+
+#changing out the participant IDs in the BBDATA
+
+#replacing instances of 1503960366 in tables with p17
+bbData_dailyCalories[bbData_dailyCalories == "1503960366"] <- "p17"
+bbData_dailyIntensities[bbData_dailyIntensities == "1503960366"] <- "p17"
+bbData_dailySteps[bbData_dailySteps == "1503960366"] <- "p17"
+bbData_sleepDay[bbData_sleepDay == "1503960366"] <- "p17"
+
+#replacing instances of 1624580081 in tables with p18
+bbData_dailyCalories[bbData_dailyCalories == "1624580081"] <- "p18"
+bbData_dailyIntensities[bbData_dailyIntensities == "1624580081"] <- "p18"
+bbData_dailySteps[bbData_dailySteps == "1624580081"] <- "p18"
+bbData_sleepDay[bbData_sleepDay == "1624580081"] <- "p18"
+
+#replacing instances of 1644430081 in tables with p19
+bbData_dailyCalories[bbData_dailyCalories == "1644430081"] <- "p19"
+bbData_dailyIntensities[bbData_dailyIntensities == "1644430081"] <- "p19"
+bbData_dailySteps[bbData_dailySteps == "1644430081"] <- "p19"
+bbData_sleepDay[bbData_sleepDay == "1644430081"] <- "p19"
+
+#replacing instances of 1844505072 in tables with p20
+bbData_dailyCalories[bbData_dailyCalories == "1844505072"] <- "p20"
+bbData_dailyIntensities[bbData_dailyIntensities == "1844505072"] <- "p20"
+bbData_dailySteps[bbData_dailySteps == "1844505072"] <- "p20"
+bbData_sleepDay[bbData_sleepDay == "1844505072"] <- "p20"
+
+#replacing instances of 1927972279 in tables with p21
+bbData_dailyCalories[bbData_dailyCalories == "1927972279"] <- "p21"
+bbData_dailyIntensities[bbData_dailyIntensities == "1927972279"] <- "p21"
+bbData_dailySteps[bbData_dailySteps == "1927972279"] <- "p21"
+bbData_sleepDay[bbData_sleepDay == "1927972279"] <- "p21"
+
+#replacing instances of 2022484408 in tables with p22
+bbData_dailyCalories[bbData_dailyCalories == "2022484408"] <- "p22"
+bbData_dailyIntensities[bbData_dailyIntensities == "2022484408"] <- "p22"
+bbData_dailySteps[bbData_dailySteps == "2022484408"] <- "p22"
+bbData_sleepDay[bbData_sleepDay == "2022484408"] <- "p22"
+
+#replacing instances of 2026352035 in tables with p23
+bbData_dailyCalories[bbData_dailyCalories == "2026352035"] <- "p23"
+bbData_dailyIntensities[bbData_dailyIntensities == "2026352035"] <- "p23"
+bbData_dailySteps[bbData_dailySteps == "2026352035"] <- "p23"
+bbData_sleepDay[bbData_sleepDay == "2026352035"] <- "p23"
+
+#replacing instances of 2320127002 in tables with p24
+bbData_dailyCalories[bbData_dailyCalories == "2320127002"] <- "p24"
+bbData_dailyIntensities[bbData_dailyIntensities == "2320127002"] <- "p24"
+bbData_dailySteps[bbData_dailySteps == "2320127002"] <- "p24"
+bbData_sleepDay[bbData_sleepDay == "2320127002"] <- "p24"
+
+#replacing instances of 2347167796 in tables with p25
+bbData_dailyCalories[bbData_dailyCalories == "2347167796"] <- "p25"
+bbData_dailyIntensities[bbData_dailyIntensities == "2347167796"] <- "p25"
+bbData_dailySteps[bbData_dailySteps == "2347167796"] <- "p25"
+bbData_sleepDay[bbData_sleepDay == "2347167796"] <- "p25"
+
+#replacing instances of 2873212765 in tables with p26
+bbData_dailyCalories[bbData_dailyCalories == "2873212765"] <- "p26"
+bbData_dailyIntensities[bbData_dailyIntensities == "2873212765"] <- "p26"
+bbData_dailySteps[bbData_dailySteps == "2873212765"] <- "p26"
+bbData_sleepDay[bbData_sleepDay == "2873212765"] <- "p26"
+
+#replacing instances of 3372868164 in tables with p27
+bbData_dailyCalories[bbData_dailyCalories == "3372868164"] <- "p27"
+bbData_dailyIntensities[bbData_dailyIntensities == "3372868164"] <- "p27"
+bbData_dailySteps[bbData_dailySteps == "3372868164"] <- "p27"
+bbData_sleepDay[bbData_sleepDay == "3372868164"] <- "p27"
+
+#replacing instances of 3977333714 in tables with p28
+bbData_dailyCalories[bbData_dailyCalories == "3977333714"] <- "p28"
+bbData_dailyIntensities[bbData_dailyIntensities == "3977333714"] <- "p28"
+bbData_dailySteps[bbData_dailySteps == "3977333714"] <- "p28"
+bbData_sleepDay[bbData_sleepDay == "3977333714"] <- "p28"
+
+#replacing instances of 4020332650 in tables with p29
+bbData_dailyCalories[bbData_dailyCalories == "4020332650"] <- "p29"
+bbData_dailyIntensities[bbData_dailyIntensities == "4020332650"] <- "p29"
+bbData_dailySteps[bbData_dailySteps == "4020332650"] <- "p29"
+bbData_sleepDay[bbData_sleepDay == "4020332650"] <- "p29"
+
+#replacing instances of 4319703577 in tables with p30
+bbData_dailyCalories[bbData_dailyCalories == "4319703577"] <- "p30"
+bbData_dailyIntensities[bbData_dailyIntensities == "4319703577"] <- "p30"
+bbData_dailySteps[bbData_dailySteps == "4319703577"] <- "p30"
+bbData_sleepDay[bbData_sleepDay == "4319703577"] <- "p30"
+
+#replacing instances of 4388161847 in tables with p31
+bbData_dailyCalories[bbData_dailyCalories == "4388161847"] <- "p31"
+bbData_dailyIntensities[bbData_dailyIntensities == "4388161847"] <- "p31"
+bbData_dailySteps[bbData_dailySteps == "4388161847"] <- "p31"
+bbData_sleepDay[bbData_sleepDay == "4388161847"] <- "p31"
+
+#replacing instances of 4445114986 in tables with p32
+bbData_dailyCalories[bbData_dailyCalories == "4445114986"] <- "p32"
+bbData_dailyIntensities[bbData_dailyIntensities == "4445114986"] <- "p32"
+bbData_dailySteps[bbData_dailySteps == "4445114986"] <- "p32"
+bbData_sleepDay[bbData_sleepDay == "4445114986"] <- "p32"
+
+#replacing instances of 4558609924 in tables with p33
+bbData_dailyCalories[bbData_dailyCalories == "4558609924"] <- "p33"
+bbData_dailyIntensities[bbData_dailyIntensities == "4558609924"] <- "p33"
+bbData_dailySteps[bbData_dailySteps == "4558609924"] <- "p33"
+bbData_sleepDay[bbData_sleepDay == "4558609924"] <- "p33"
+
+#replacing instances of 4702921684 in tables with p34
+bbData_dailyCalories[bbData_dailyCalories == "4702921684"] <- "p34"
+bbData_dailyIntensities[bbData_dailyIntensities == "4702921684"] <- "p34"
+bbData_dailySteps[bbData_dailySteps == "4702921684"] <- "p34"
+bbData_sleepDay[bbData_sleepDay == "4702921684"] <- "p34"
+
+#replacing instances of 5553957443 in tables with p35
+bbData_dailyCalories[bbData_dailyCalories == "5553957443"] <- "p35"
+bbData_dailyIntensities[bbData_dailyIntensities == "5553957443"] <- "p35"
+bbData_dailySteps[bbData_dailySteps == "5553957443"] <- "p35"
+bbData_sleepDay[bbData_sleepDay == "5553957443"] <- "p35"
+
+#replacing instances of 5577150313 in tables with p36
+bbData_dailyCalories[bbData_dailyCalories == "5577150313"] <- "p36"
+bbData_dailyIntensities[bbData_dailyIntensities == "5577150313"] <- "p36"
+bbData_dailySteps[bbData_dailySteps == "5577150313"] <- "p36"
+bbData_sleepDay[bbData_sleepDay == "5577150313"] <- "p36"
+
+#replacing instances of 6117666160 in tables with p37
+bbData_dailyCalories[bbData_dailyCalories == "6117666160"] <- "p37"
+bbData_dailyIntensities[bbData_dailyIntensities == "6117666160"] <- "p37"
+bbData_dailySteps[bbData_dailySteps == "6117666160"] <- "p37"
+bbData_sleepDay[bbData_sleepDay == "6117666160"] <- "p37"
+
+#replacing instances of 6290855005 in tables with p38
+bbData_dailyCalories[bbData_dailyCalories == "6290855005"] <- "p38"
+bbData_dailyIntensities[bbData_dailyIntensities == "6290855005"] <- "p38"
+bbData_dailySteps[bbData_dailySteps == "6290855005"] <- "p38"
+bbData_sleepDay[bbData_sleepDay == "6290855005"] <- "p38"
+
+#replacing instances of 6775888955 in tables with p39
+bbData_dailyCalories[bbData_dailyCalories == "6775888955"] <- "p39"
+bbData_dailyIntensities[bbData_dailyIntensities == "6775888955"] <- "p39"
+bbData_dailySteps[bbData_dailySteps == "6775888955"] <- "p39"
+bbData_sleepDay[bbData_sleepDay == "6775888955"] <- "p39"
+
+#replacing instances of 6962181067 in tables with p40
+bbData_dailyCalories[bbData_dailyCalories == "6962181067"] <- "p40"
+bbData_dailyIntensities[bbData_dailyIntensities == "6962181067"] <- "p40"
+bbData_dailySteps[bbData_dailySteps == "6962181067"] <- "p40"
+bbData_sleepDay[bbData_sleepDay == "6962181067"] <- "p40"
+
+#replacing instances of 7007744171 in tables with p41
+bbData_dailyCalories[bbData_dailyCalories == "7007744171"] <- "p41"
+bbData_dailyIntensities[bbData_dailyIntensities == "7007744171"] <- "p41"
+bbData_dailySteps[bbData_dailySteps == "7007744171"] <- "p41"
+bbData_sleepDay[bbData_sleepDay == "7007744171"] <- "p41"
+
+#replacing instances of 7086361926 in tables with p42
+bbData_dailyCalories[bbData_dailyCalories == "7086361926"] <- "p42"
+bbData_dailyIntensities[bbData_dailyIntensities == "7086361926"] <- "p42"
+bbData_dailySteps[bbData_dailySteps == "7086361926"] <- "p42"
+bbData_sleepDay[bbData_sleepDay == "7086361926"] <- "p42"
+
+#replacing instances of 8053475328 in tables with p43
+bbData_dailyCalories[bbData_dailyCalories == "8053475328"] <- "p43"
+bbData_dailyIntensities[bbData_dailyIntensities == "8053475328"] <- "p43"
+bbData_dailySteps[bbData_dailySteps == "8053475328"] <- "p43"
+bbData_sleepDay[bbData_sleepDay == "8053475328"] <- "p43"
+
+#replacing instances of 8253242879 in tables with p44
+bbData_dailyCalories[bbData_dailyCalories == "8253242879"] <- "p44"
+bbData_dailyIntensities[bbData_dailyIntensities == "8253242879"] <- "p44"
+bbData_dailySteps[bbData_dailySteps == "8253242879"] <- "p44"
+bbData_sleepDay[bbData_sleepDay == "8253242879"] <- "p44"
+
+#replacing instances of 8378563200 in tables with p45
+bbData_dailyCalories[bbData_dailyCalories == "8378563200"] <- "p45"
+bbData_dailyIntensities[bbData_dailyIntensities == "8378563200"] <- "p45"
+bbData_dailySteps[bbData_dailySteps == "8378563200"] <- "p45"
+bbData_sleepDay[bbData_sleepDay == "8378563200"] <- "p45"
+
+#replacing instances of 8583815059 in tables with p46
+bbData_dailyCalories[bbData_dailyCalories == "8583815059"] <- "p46"
+bbData_dailyIntensities[bbData_dailyIntensities == "8583815059"] <- "p46"
+bbData_dailySteps[bbData_dailySteps == "8583815059"] <- "p46"
+bbData_sleepDay[bbData_sleepDay == "8583815059"] <- "p46"
+
+#replacing instances of 8792009665 in tables with p47
+bbData_dailyCalories[bbData_dailyCalories == "8792009665"] <- "p47"
+bbData_dailyIntensities[bbData_dailyIntensities == "8792009665"] <- "p47"
+bbData_dailySteps[bbData_dailySteps == "8792009665"] <- "p47"
+bbData_sleepDay[bbData_sleepDay == "8792009665"] <- "p47"
+
+#replacing instances of 8877689391 in tables with p48
+bbData_dailyCalories[bbData_dailyCalories == "8877689391"] <- "p48"
+bbData_dailyIntensities[bbData_dailyIntensities == "8877689391"] <- "p48"
+bbData_dailySteps[bbData_dailySteps == "8877689391"] <- "p48"
+bbData_sleepDay[bbData_sleepDay == "8877689391"] <- "p48"
+
+#replacing instances of 4057192912 in tables with p49
+bbData_dailyCalories[bbData_dailyCalories == "4057192912"] <- "p49"
+bbData_dailyIntensities[bbData_dailyIntensities == "4057192912"] <- "p49"
+bbData_dailySteps[bbData_dailySteps == "4057192912"] <- "p49"
+bbData_sleepDay[bbData_sleepDay == "4057192912"] <- "p49"`
+
+Now that the participant IDs across the data sets are consecutive and consistent, I will rename the columns to match across the data sets as well as remove columns I will not need or that are redundant.
+
+#Removing columns I will not be using. Renaming columns so that they are consistent across the datasets before merging.
+
+#for BBDATA Calories
+#renaming columns using 'rename' function
+bbData_dailyCalories_clean <- rename(bbData_dailyCalories, date = ActivityDay, calories = Calories)
+#unsing 'colnames' function to rename columns
+colnames(bbData_dailyCalories_clean)[colnames(bbData_dailyCalories_clean) %in% c("Id")] <- c("id")
+
+#for BBDATA Intensities
+#using '!' as 'not' in conjunction with 'names' and '%in%' to select which columns to keep
+bbData_dailyIntensities_clean <- bbData_dailyIntensities[!(names(bbData_dailyIntensities) %in% c("SedentaryActiveDistance", "LightActiveDistance", "ModeratelyActiveDistance", "VeryActiveDistance"))]
+colnames(bbData_dailyIntensities_clean)[colnames(bbData_dailyIntensities_clean) %in% c("Id", "ActivityDay", "SedentaryMinutes", "LightlyActiveMinutes", "FairlyActiveMinutes", "VeryActiveMinutes")] <- c("id", "date", "sedentary_minutes", "lightly_active_minutes", "moderately_active_minutes", "very_active_minutes")
+
+#for BBDATA Steps
+bbData_dailySteps_clean <- rename(bbData_dailySteps, date = ActivityDay, steps = StepTotal)
+colnames(bbData_dailySteps_clean)[colnames(bbData_dailySteps_clean) %in% c("Id")] <- c("id")
+
+#for BBDATA Sleep
+bbData_sleepDay_clean <- bbData_sleepDay[!(names(bbData_sleepDay) %in% c("TotalSleepRecords"))]
+colnames(bbData_sleepDay_clean)[colnames(bbData_sleepDay_clean) %in% c("Id", "SleepDay", "TotalTimeInBed", "TotalMinutesAsleep")] <- c("id", "date", "time_in_bed", "minutes_asleep")
+
+# for PMDATA daily Overall Activity
+pmData_dailyActivity_clean <- pmData_dailyActivity[!(names(pmData_dailyActivity) %in% c("day", "gender", "age", "height", "minutes_after_wakeup", "minutes_asleep", "minutes_awake", "time_in_bed_minutes", "distance_km"))]
+colnames(pmData_dailyActivity_clean)[colnames(pmData_dailyActivity_clean) %in% c("participant_id", "date_time")] <- c("date", "id")
+
+#for PMDATA Sleep
+pmData_dailySleep_clean <- pmData_dailySleep[!(names(pmData_dailySleep) %in% c("log_id", "start_time", "end_time", "duration", "type", "info_code", "main_sleep", "gender", "age", "height", "efficiency", "minutes_to_fall_asleep", "minutes_awake", "minutes_after_wakeup"))]
+colnames(pmData_dailySleep_clean)[colnames(pmData_dailySleep_clean) %in% c("participant_id", "date_of_sleep")] <- c("date", "id")'
+
+I notice that in my BBDATA Sleep dataframe the dates are composed of MM:DD:YYYY and HH:MM:SS AM/PM. I want to remove the time stamp as this will interfere with my join. I also want to convert all date columns from 'chr' type to actual 'datetime' objects.
+
+`#converting to 'datetime' in the Y-m-d format
+bbData_dailyCalories_clean$date <- as.POSIXct(bbData_dailyCalories_clean$date, format = "%m/%d/%Y")
+bbData_dailyIntensities_clean$date <- as.POSIXct(bbData_dailyIntensities_clean$date, format = "%m/%d/%Y")
+bbData_dailySteps_clean$date <- as.POSIXct(bbData_dailySteps_clean$date, format = "%m/%d/%Y")
+bbData_sleepDay_clean$date <- as.POSIXct(bbData_sleepDay_clean$date, format = "%m/%d/%Y")
+
+pmData_dailyActivity_clean$date <- as.POSIXct(pmData_dailyActivity_clean$date, format = "%Y-%m-%d")
+pmData_dailySleep_clean$date <- as.POSIXct(pmData_dailySleep_clean$date, format = "%Y-%m-%d")`
+
+### Merging the cleaned datasets together
+
+Now I can merge the data sets together in order to get a consolidated dataframe for my analysis.
+
+`#merging the BBDATA together
+bb_merge1 <- merge(bbData_dailyCalories_clean, bbData_dailyIntensities_clean, all= TRUE)
+bb_merge2 <- merge(bbData_dailySteps_clean, bbData_sleepDay_clean, all= TRUE)
+bb_merge3 <- merge(bb_merge1, bb_merge2, all = TRUE)
+#--Test BBDATA merges--#
+#head(bb_merge1)
+#head(bb_merge2)
+#head(bb_merge3)
+
+#merging the PMDATA together
+pm_merge <- merge(pmData_dailyActivity_clean, pmData_dailySleep_clean, all = TRUE)
+#--Test PMDATA merges--#
+#head(pm_merge)
+
+#merging them together
+total_merge <- merge(bb_merge3, pm_merge, all = TRUE)
+#--Test final merge--#
+#head(total_merge)`
+
+---
+# Analyze Phase
+
+Now I can pass my merged data to the summary function to get a look at how everything looks:
+
+`summary(total_merge)`
+
+### Hypothesis
+
+First, let me restate the business problem: "*...manufacturer of health-focused products for women is looking to become a larger player in the global smart device market.*" This means I need to identify opportunities to leverage current user interactions with wearable technology to either encourage greater engagement or find encouraging metrics to market to prospective customers.
+
+Looking at my data's columns, I have 4 categories for analysis:
+
+1. The caloric output of each participant in the studies on a daily basis.
+2. The level of activity rates as 'sedentary-lightly active-moderately active-and very active', all measured by the minute.
+3. The quantity of steps per participant per day.
+4. The quantity of sleep and time in bed per participant measured in minutes.
+
+I will group my analysis by the metrics here:
+
+**Category 1 and 2** already imply the presence of subsets from our participants. Some were more likely to engage with their wearable technology at a low level, some at an intermediate level, and others at a high level, based on their calories burnt or the time they spent at the varying activity levels.
+
+**Category 3** could serve as an interesting cross-section of these activity levels as "activity level" should not be considered the end-goal of wearable activity levels. A line of questioning of any activity monitor should also consider the benefits of low-intensity exercise like walking to manage obesity and weight-loss, as referenced in [this synopsis](https://www.mayoclinic.org/healthy-lifestyle/weight-loss/expert-answers/walking/faq-20058345#:~:text=Physical%20activity%2C%20such%20as%20walking,more%20calories%20you%27ll%20burn.) given by Dr. Katherine Zeratsky with the Mayo Clinic.
+
+**Category 4** provides additional contextual information in the form of sleep quality and its effects on exercise. Wearable trackers focus on time spent asleep and time spent in bed as primary metrics for sleep, a well established baseline that is measured by programs such as [CBT-I](https://www.sleepfoundation.org/insomnia/treatment/cognitive-behavioral-therapy-insomnia) (Cognitive Behavioral Therapy for Insomnia). Essentially, more minutes asleep while in bed means better rest and by extension, better energy for exercise and recovery.
+
+### Categories 1 and 2: Activity Levels and Calories
+
+I can organize my data on these participants by activity levels, grouping each participant into one of the activity labels.
+
+By looking at the summary of my data I notice that the mean of **sedentary minutes** was by far the highest. This makes sense as most of our day is not spent doing strenuous activity unless a person works in a job with a high level of physical activity. The mean for **light and moderate activity** is far less but decreases progressively as the difficulty increases.
+
+Interestingly enough, the **very active** category has a higher mean than I would expect, beating the moderate activity category. I would hypothesize that most of the participants of these two study groups would be aware of their participation and more focused on their wearable technology while going about their lives. As a result, when pursuing physical activity these participants would likely seek to spend more time in the very active category of physical activity in order to achieve their activity goals.
+
+I conducted this calculation by comparing their daily activity at each level to the mean for that column. I set my calculation to evaluate four cases:
+
+* First, did the participant's very active minutes exceed the mean for very_high_activity? If so, I would rate that day's activity as "Very Active". If not, then we continue to evaluate.
+* Second, if the participant did not beat the mean for very active minutes, did their moderate activity beat the mean for moderately_active_minutes? If so, they would be rated as moderately active.
+* If none of the first two conditions are met, we evaluate the same for their light activity.
+* Finally, if they do not beat the mean for very, moderate, or light activity for the day, they are categorized as sedentary activity for the day overall.
+
+I also keep calorie expenditure information in my dataset so I can compare activity level to calorie expenditure.
+
+`head(total_merge)
+
+#creating a subset of total_merge that defines the characteristics of each activity level and finds to which category the participant belongs
+activity_level_daily <- total_merge %>%
+summarise(
+activity_level = factor(case_when(
+    very_active_minutes > 36.59 ~ "Very Active",
+    moderately_active_minutes > 18.76 ~ "Moderately Active",
+    lightly_active_minutes > 193.9 ~ "Lightly Active",
+    sedentary_minutes > 839.7 ~ "Sedentary",
+    TRUE ~ "Sedentary"
+),levels=c("Sedentary", "Lightly Active", "Moderately Active", "Very Active")),calories, steps,minutes_asleep, .group=id) %>%
+drop_na()
+
+head(activity_level_daily)
+
+activity_level_daily %>%
+group_by(activity_level) %>%
+summarise(total = n()) %>%
+mutate(totals = sum(total)) %>%
+group_by(activity_level) %>%
+summarise(total_percent = total / totals) %>%
+ggplot(aes(activity_level,y=total_percent, fill= activity_level)) +
+    geom_col(colour = "black")+
+    scale_y_continuous(labels = scales::percent) +
+    scale_fill_manual(values = c("#F0F6F6","#BBE6E4","#42BFDD","#084B83")) +
+    labs(title="Distribution of Activity Levels", x = "Activity Level", y = "% of times activity level reached") +
+    theme_minimal(base_family = "Roboto Condensed") +
+    theme(legend.position = "none", text = element_text(size = 20),plot.title = element_text(hjust = 0.5))
+
+ggplot(activity_level_daily, aes(activity_level, calories, fill=activity_level)) +
+    geom_boxplot() +
+    theme_minimal(base_family = "Roboto Condensed") +
+    scale_fill_manual(values = c("#F0F6F6","#BBE6E4","#42BFDD","#084B83")) +
+    labs(title="Calories burned per Activity Level", x = "Activity Level", y = "Calories burnt") +
+    theme_minimal(base_family = "Roboto Condensed") +
+    theme(legend.position="none", text = element_text(size = 20),plot.title = element_text(hjust = 0.5))`
+
+As we can see, this distribution of activity levels is consistent with the summary produced above. All of the participants in both PM and BM data reached very high levels of activity as a percent of all their activity. Nearly 40% of days where a participant was active resulted in them reaching a high level of activity. This on its own is important because it may confirm that wearing fitness technology is encouraging wearers to be less sedentary and to reach higher levels of physical activity.
+
+The **tangible outcome of category 1 and 2 analysis** is that our box and whisker plot also shows that participants who sought higher levels of physical activity also, on average, burned more calories. *This positive correlation confirms information we can deduce from our common sense but when paired with the idea that wearable fitness devices encourage us to exercise at a higher level of activity, it provides encouraging data for the use of these devices.*
+
+### Category 3: Walking (and steps) as fitness
+
+As mentioned before, another major advantage of wearble technology is the ability for participants to track their daily steps in real-time. Walking has increased in popularity as a 'passive' or at least unconscious activity that can be pursued for overall weight maintenance and weight loss. Let's compare the calorie expenditure of our participants with the amount of steps they took, measured in kilometers.
+
+`#altering the activty level dataframe but with steps and their equivalent Km conversions
+activity_level_inKm <- mutate(activity_level_daily, steps_in_km = steps/1312.3359)
+
+head(activity_level_inKm)
+summary(activity_level_inKm)
+
+activity_level_inKm %>%
+summarise(
+distance = factor(case_when(
+    steps_in_km < 3 ~ "< 3 Km",
+    steps_in_km >= 3 & steps_in_km <= 10 ~ "3 to 10 Km",
+    steps_in_km > 7 ~ "> 10 Km",
+),levels = c("< 3 Km","3 to 10 Km","> 10 Km")),
+steps = factor(case_when(
+    steps < 5000 ~ "< 5k steps",
+    steps >= 5000 & steps <= 10000 ~ "5k to 10k steps",
+    steps > 10000 ~ "> 10k steps",
+),levels = c("< 5k steps","5k to 10k steps","> 10k steps")),
+calories) %>%
+ggplot(aes(steps, calories, fill = steps)) +
+    geom_boxplot(width = 0.8, position = "dodge") +
+    facet_grid(~ distance, scales = "free", space = 'free') +
+    scale_x_discrete(expand = c(0,0.5)) + 
+    scale_fill_manual(values = c("#BBE6E4","#42BFDD","#084B83")) +
+    labs(
+        title="Calories burned by Step and Distance",
+        x = NULL,
+        y = "Calories") +
+    theme_minimal(base_family = "Roboto Condensed") +
+    theme(
+        legend.position = "none",
+        plot.margin = margin(0.5, 0.5, 0.5, 0.5, unit = "cm"),
+        text = element_text(size = 20),
+        plot.title = element_text(hjust = 0.5))`
+
+This visualization demonstrates another common sense correlation between distance trevelled/steps taken and and increase in calorie burn. However, it also demonstrates that the variance in calories burnt for the majority of participants is between approximately 2000 and 3500 calories, a 1500 calorie range. This range is not as big as one might think as the second segment of our chart accounts for a difference of up to 7Km of daily travel in steps. This is indicative of diminishing returns as over a large swath of activity levels participants had a significant overlap in caloric expenditure.
+
+At the extemities, more sedentary participants saw a low range of calorie expenditure, just about achieving the minimum daily requirement for weight maintenance. On the other side, high activity patrticipants saw significant calorie burn increase overall, again showing the value of exercise. Most interesting, the middle of our distribution showed that increasing one's daily steps/distance travelled by even several kilometers can increase calorie expenditure by anywhere from 500 to 1000 calories a day, without necessarily needing to become a very active person at the far end of the scale.
+
+The **tangible outcome of category 3 analysis** seems to be that we can encourage users of wearable technology to use the steps function in order to maximize their daily calorie expenditure by increasing their steps only by a moderate amount. As mentioned before, this is already backed by scientific studies and seems to be supported by the data here. *The value-add is to emphasize the usefuleness of a wearable step counter that can help a customer calculate their steps hour-by-hour in order to improve their outcomes.* Entering the fair or moderate activity level is also seemingly beneficial, so plugging into ongoing culture of daily walking would be recommended. This would leverage a concerted walking event rather than passive steps done intermittently throughout the day.
+
+### Category 4: Sleep
+
+Sleep is an increasingly important metric and it's knock-on effects for weight and physical health are being better understood. As mentioned before, including sleep data in our analysis could help us make better recommendations for wearable tech's impact on users.
+
+As mentioned before, insomnia and overall sleep health can be tracked using distinct metrics such as time spent in bed versus time asleep. The Mayo Clinic further explains that adults need at least 7 hours of sleep a night to be fully rested, sourced [here](https://www.mayoclinic.org/healthy-lifestyle/adult-health/expert-answers/how-many-hours-of-sleep-are-enough/faq-20057898), ideally uninterrupted and deep sleep. This means that users of wearable technology will want to quantify their quality of sleep and how it impacts their physical activity.
+
+For our purposes, 7 hours of sleep is equivalent to 420 minutes. This would be ideal sleep from a clinical standpoint and a good starting point for our analysis.
+
+`head(activity_level_daily)
+summary(activity_level_daily)
+
+#classifying each participant's night of sleep as poor/normal/excess
+sleep_tibble1 <- activity_level_daily %>%
+mutate(
+    sleep_type = factor(case_when(
+    minutes_asleep > 440 ~ "Excess Sleep",
+    minutes_asleep > 360 ~ "Normal Sleep",
+    minutes_asleep < 360 ~ "Poor Sleep",
+),levels = c("Poor Sleep", "Normal Sleep", "Excess Sleep")), .groups="drop"
+) %>%
+drop_na()
+head(sleep_tibble1)
+
+#grouping our sleeper categories by their activity level
+daily_sleep_byActivity <- sleep_tibble1 %>%
+group_by(activity_level) %>%
+summarise(poor_sleepers = sum(sleep_type == "Poor Sleep"), normal_sleepers = sum(sleep_type == "Normal Sleep"),excess_sleepers = sum(sleep_type == "Excess Sleep"),total=n(),.groups="drop") %>%
+group_by(activity_level) %>%
+summarise(
+    poor_sleepers = poor_sleepers / total, 
+    normal_sleepers = normal_sleepers / total, 
+    excess_sleepers = excess_sleepers / total,
+    .groups="drop"
+)
+
+head(daily_sleep_byActivity)
+
+#finalizing the data as a long dataframe
+daily_sleep_byActivity_long <- melt(daily_sleep_byActivity, id.vars = "activity_level")
+
+ggplot(daily_sleep_byActivity_long,
+aes(activity_level, value, fill = variable)) +
+geom_bar(position = "dodge", stat = "identity", width = 0.8) +
+scale_y_continuous(labels = scales::percent) +
+labs(x = "Activity Level",
+     y = NULL,
+     fill=NULL,
+     title = "Sleep Quality by Activity Level") +
+     scale_fill_manual(values = c("#BBE6E4","#42BFDD","#084B83")) +
+     theme_minimal(base_family = "Roboto Condensed") +
+theme(legend.position="right",text = element_text(size = 20),plot.title = element_text(hjust = 0.5))`
+
+Thsi provides a very interesting breakdown of sleep habits for each level of activity. Immediately we can observe that participants in the Sedentary activity level experienced a significant quantity of excess sleep, hitting the snooze button more often than the other groups. On the other extremity, participants experienced sleep well within normal parameters in the very active category and the least amount of excess sleep. Without more data, it would be difficult to establish if better sleep habits resulted in more physical activity overall or if more physical activity allowed participants to experience more balanced sleep. In either case, wearable fitness technology is likely to be a positive influence as it can allow a user to measure both sleep and physical activity and result in the benefits that are shown here.
+
+The **tangible outcome of category 4 analysis** is that quantifying sleep on an individual scale seems to be helping wearable fitness technology users to achieve a higher rate of physical activity. This could be attributed to quality of sleep which is in of itself a benefit as most users are likely to want to improve their sleep in addition to balance their weight and exercise. *This allows us to be sure that we can leverage the combined features of wearable fitness technology in marketing to prospective customers.*
+
+### Room for improvement in this analysis
+
+The scope of this case study is limited as we are using data from a small pool of participants in studies involving wearable fitness technology. One of the main objectives of the prepare/process phases was to incorporate more data with a high relevancy to our analysis. Despite adding more data points, the results of this analysis could use even more data. Most importantly, taking a detailed look at more variables for calculating caloric expenditure over time (category 3) and quality of sleep (category 4) would likely result in more precise data that could be used to create eye-catching or otherwise marketable statistics.
+
+A final opportunity would be for Bellabeat or some third-party to conduct new studies, possible using their own product, targeting women only in order to better fit this analysis to their strategy.
+
+---
+# Share and Act Phase
+
+The tangible outcomes of this analysis are:
+
+1. Using wearable fitness technology can be linked to customers engaging in more physical activity and usually at higher levels of intensity.
+
+2. Increasing caloric expenditure and thus achieving better weight loss or weight balance can be achieved by increasing your daily steps in a dedicated way. The easiest way to do this is to use a wearable fitness tech to help you quantify your steps overall, your steps at your baseline, and how to increase your steps daily.
+
+3. Getting good sleep is a critical element of good exercise. Individuals who have measured that they get on average regular sleep or better have better health outcomes than those who get poorer sleep. A good way of achieving better sleep is by measuring it using wearable fitness technology.
+
+Bellabeat would like to expand their market capture of the wearable fitness technology industry. They should do so by incorporating the above three tenets in their marketing materials. These can be distilled to **"Bellabeat can help you get active and increase the intensity of your workouts"**, **"Bellabeat can help you achieve your health goals by encouraging you to get up on your feet and putting in your steps."**, and finally **"Bellabeat can help you get your sleep on track so you can get to being a better-rested, healthier, and more fit you."**
+
+Furthermore, Bellabeat has an advantage in that they are trying to connect with women who want a wearable fitness product that focuses on them. Sponsoring or sourcing more data focused on women as they exercise, sleep, and eat is an effective avenue towards leveraging that viewpoint and empowering women who are looking to achieve their fitness goals.
+
+### Sources:
+
+1. Women’s involvement in clinical trials: historical perspective and future implications. NIH. https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4800017/. Accessed Aug. 5, 2022.
+
+2. Can I lose weight if my only exercise is walking?. Mayo Clinic. https://www.mayoclinic.org/healthy-lifestyle/weight-loss/expert-answers/walking/faq-20058345#:~:text=Physical%20activity%2C%20such%20as%20walking,more%20calories%20you%27ll%20burn. Accessed Aug. 5, 2022.
+
+3. Cognitive Behavioral Therapy for Insomnia (CBT-I). Sleep Foundation. https://www.sleepfoundation.org/insomnia/treatment/cognitive-behavioral-therapy-insomnia. Accessed Aug. 5, 2022.
+
+4. How many hours of sleep are enough for good health? Mayo Clinic. https://www.mayoclinic.org/healthy-lifestyle/adult-health/expert-answers/how-many-hours-of-sleep-are-enough/faq-20057898. Accessed Aug. 8, 2022.
