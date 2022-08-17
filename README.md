@@ -1,9 +1,12 @@
 # analysis-breakthrough
 A repository of my data analysis projects.
-<\br>
+
 ---
+
 ## Project 1 - R
 I worked through a pair of datasets sourced from kaggle.com to analyze wearable fitness tracker data in R. This project can be found directly on kaggle.com at [this link](https://www.kaggle.com/code/timotheeschlumberger/bellabeat-case-study-in-r).
+
+This project is titled "Bellabeat Project in R" and is case study 2 in the Google Data Analystics Professional certificate capstone.
 
 ---
 
