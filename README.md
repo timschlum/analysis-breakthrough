@@ -22,3 +22,8 @@ I have worked through the following projects:
 - [] Case Study #6 - Clique Bait
 - [] Case Study #7 - Balanced Tree Clothing Co.
 - [] Case Study #8 - Fresh Segments
+
+---
+
+## Project 3 - Dataset building, cleaning and Visualization with Tableau
+This project is in two parts and consists of (1) a dataset I collated and cleaned which is available in my [Kaggle portfolio](https://www.kaggle.com/code/timotheeschlumberger/veganomicon) and (2) the resulting visualizations I built in [Tableau](https://public.tableau.com/app/profile/timothee.schlumberger#!/?newProfile=&activeTab=0). In this project I built a dataset from scratch from a complex recipe book in order to see if I could answer questions about vegan cooking I had after trying some of its recipes. I work through the process of collecting data in Exel format, cleaning the data to create consistent and clean data, and then visualize the data using the product of my work. I also build a dashboard to explore how I can present my findings as well as to see the outcomes of updating my work in real-time.
