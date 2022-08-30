@@ -421,7 +421,92 @@ FROM sales_w_menu
 WHERE customer_id = 'B' AND order_date < '2021-01-09T00:00:00.000Z';
 
 -- 9.  If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
---ANSW:
+--ANSW: Customer A would have 86 points, customer B would have 94 points, and (though its not clear if C would qualify) customer C would have 36 points.
+
+--Manipulating the table to add a new column calculating the member points and filtering for customer A
+SELECT menu_w_sales.*, 
+CASE WHEN menu_w_sales.product_name = 'sushi' THEN price*2 
+ELSE price
+END AS member_points
+FROM 
+(SELECT *
+    FROM dannys_diner.sales
+    INNER JOIN dannys_diner.menu
+    ON dannys_diner.sales.product_id = dannys_diner.menu.product_id) AS menu_w_sales
+WHERE customer_id = 'A';
+
+--Manipulating the table to add a new column calculating the member points and filtering for customer B
+SELECT menu_w_sales.*, 
+CASE WHEN menu_w_sales.product_name = 'sushi' THEN price*2 
+ELSE price
+END AS member_points
+FROM 
+(SELECT *
+    FROM dannys_diner.sales
+    INNER JOIN dannys_diner.menu
+    ON dannys_diner.sales.product_id = dannys_diner.menu.product_id) AS menu_w_sales
+WHERE customer_id = 'B';
+
+--Manipulating the table to add a new column calculating the member points and filtering for customer C
+SELECT menu_w_sales.*, 
+CASE WHEN menu_w_sales.product_name = 'sushi' THEN price*2 
+ELSE price
+END AS member_points
+FROM 
+(SELECT *
+    FROM dannys_diner.sales
+    INNER JOIN dannys_diner.menu
+    ON dannys_diner.sales.product_id = dannys_diner.menu.product_id) AS menu_w_sales
+WHERE customer_id = 'C';
 
 -- 10. In the first week after a customer joins the program (including their join date) they earn 2x points on all items, not just sushi - how many points do customer A and B have at the end of January?
---ANSW: 
+--ANSW: Customer A would have 152 points and customer B would have 124 points.
+
+--Changing my previous query to filter for the date as well as a double all menu items.
+--For customer A:
+SELECT menu_w_sales.*, 
+CASE WHEN
+	menu_w_sales.product_name = 'sushi'
+	OR menu_w_sales.product_name = 'ramen'
+    OR menu_w_sales.product_name = 'curry'
+    THEN price*2 
+ELSE price
+END AS member_points
+FROM 
+(SELECT *
+    FROM dannys_diner.sales
+    INNER JOIN dannys_diner.menu
+    ON dannys_diner.sales.product_id = dannys_diner.menu.product_id) AS menu_w_sales
+WHERE customer_id = 'A' AND order_date < '2021-01-31T00:00:00.000Z';
+
+--For customer B:
+SELECT menu_w_sales.*, 
+CASE WHEN
+	menu_w_sales.product_name = 'sushi'
+	OR menu_w_sales.product_name = 'ramen'
+    OR menu_w_sales.product_name = 'curry'
+    THEN price*2 
+ELSE price
+END AS member_points
+FROM 
+(SELECT *
+    FROM dannys_diner.sales
+    INNER JOIN dannys_diner.menu
+    ON dannys_diner.sales.product_id = dannys_diner.menu.product_id) AS menu_w_sales
+WHERE customer_id = 'B' AND order_date < '2021-01-31T00:00:00.000Z';
+
+--For customer C:
+SELECT menu_w_sales.*, 
+CASE WHEN
+	menu_w_sales.product_name = 'sushi'
+	OR menu_w_sales.product_name = 'ramen'
+    OR menu_w_sales.product_name = 'curry'
+    THEN price*2 
+ELSE price
+END AS member_points
+FROM 
+(SELECT *
+    FROM dannys_diner.sales
+    INNER JOIN dannys_diner.menu
+    ON dannys_diner.sales.product_id = dannys_diner.menu.product_id) AS menu_w_sales
+WHERE customer_id = 'C' AND order_date < '2021-01-31T00:00:00.000Z';
