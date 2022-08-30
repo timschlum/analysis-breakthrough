@@ -15,7 +15,7 @@ My main starting project is built off of the 8-week SQL challenge by Data w/ Dan
 
 I have worked through the following projects:
 - [X] Case Study #1 - Danny's Diner
-- [] Case Study #2 - Pizza Runner
+- [] Case Study #2 - Pizza Runner (In progress)
 - [] Case Study #3 - Foodie Fi
 - [] Case Study #4 - Data Bank
 - [] Case Study #5 - Data Mart
