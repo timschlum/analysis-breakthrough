@@ -61,7 +61,7 @@ VALUES
    --------------------*/
 
 -- 1. What is the total amount each customer spent at the restaurant?
--- ANSW: Customer A has spent $76 and customer B has spent $74
+-- ANSW: Customer A has spent $76, customer B has spent $74, and customer C has spent $36.
 
 --Example of join and filter of menu and sales schemas for queries, filtered by customer A
 WITH sales_w_menu AS(
@@ -92,8 +92,18 @@ SELECT SUM(price)
 FROM sales_w_menu
 WHERE customer_id = 'B';
 
+-- Sum of purchases by customer C
+WITH sales_w_menu AS(
+	SELECT *
+	FROM dannys_diner.sales
+	INNER JOIN dannys_diner.menu
+	ON dannys_diner.sales.product_id = dannys_diner.menu.product_id)
+SELECT SUM(price)
+FROM sales_w_menu
+WHERE customer_id = 'C';
+
 -- 2. How many days has each customer visited the restaurant?
--- ANSW: Customer A has visited 4 times and customer B has visited 6 times.
+-- ANSW: Customer A has visited 4 times, customer B has visited 6 times, and customer C has visited 2 times.
 
 --Number of distinct days customer A has visited
 WITH sales_visits AS(
@@ -111,8 +121,16 @@ WITH sales_visits AS(
 SELECT COUNT(order_date)
 FROM sales_visits;
 
+--Number of distinct days customer C has visited
+WITH sales_visits AS(
+	SELECT DISTINCT order_date
+	FROM dannys_diner.sales
+  	WHERE customer_id = 'C')
+SELECT COUNT(order_date)
+FROM sales_visits;
+
 -- 3. What was the first item from the menu purchased by each customer?
--- ANSW: Customer A ordered sushi and customer B ordered curry.
+-- ANSW: Customer A ordered sushi, customer B ordered curry, and customer C ordered ramen.
 
 --Sorting the menu by customer A and ascending order to see first order by that person
 WITH sales_w_menu AS(
@@ -135,6 +153,18 @@ WITH sales_w_menu AS(
 SELECT *
 FROM sales_w_menu
 WHERE customer_id = 'B'
+ORDER BY order_date ASC
+LIMIT 1;
+
+--Sorting the menu by customer C and ascending order to see first order by that person
+WITH sales_w_menu AS(
+	SELECT *
+	FROM dannys_diner.sales
+	INNER JOIN dannys_diner.menu
+	ON dannys_diner.sales.product_id = dannys_diner.menu.product_id)
+SELECT *
+FROM sales_w_menu
+WHERE customer_id = 'C'
 ORDER BY order_date ASC
 LIMIT 1;
 
@@ -181,7 +211,7 @@ FROM sales_w_menu
 WHERE product_name = 'sushi';
 
 -- 5. Which item was the most popular for each customer?
--- ANSW: Customer A prefers ramen (3 ramen, 2 curry, 1 sushi ordered) and customer B prefers
+-- ANSW: Customer A prefers ramen (3 ramen, 2 curry, 1 sushi ordered), customer B prefers none of the items (they ordered 2 of each menu item), and customer C prefers ramen (ordered ramen 3 times and nothing else).
 
 --For customer A
 --How many times is ramen ordered by A?
@@ -251,8 +281,42 @@ SELECT COUNT(product_name)
 FROM sales_w_menu
 WHERE product_name = 'sushi';
 
+--For customer C
+--How many times is ramen ordered by C?
+WITH sales_w_menu AS(
+	SELECT *
+	FROM dannys_diner.sales
+	INNER JOIN dannys_diner.menu
+	ON dannys_diner.sales.product_id = dannys_diner.menu.product_id
+	WHERE customer_id = 'C')
+SELECT COUNT(product_name)
+FROM sales_w_menu
+WHERE product_name = 'ramen';
+
+--How many times is curry ordered by C?
+WITH sales_w_menu AS(
+	SELECT *
+	FROM dannys_diner.sales
+	INNER JOIN dannys_diner.menu
+	ON dannys_diner.sales.product_id = dannys_diner.menu.product_id
+	WHERE customer_id = 'C')
+SELECT COUNT(product_name)
+FROM sales_w_menu
+WHERE product_name = 'curry';
+
+--How many times is sushi ordered by C?
+WITH sales_w_menu AS(
+	SELECT *
+	FROM dannys_diner.sales
+	INNER JOIN dannys_diner.menu
+	ON dannys_diner.sales.product_id = dannys_diner.menu.product_id
+	WHERE customer_id = 'C')
+SELECT COUNT(product_name)
+FROM sales_w_menu
+WHERE product_name = 'sushi';
+
 -- 6. Which item was purchased first by the customer after they became a member?
--- ANSW: Customer A purchased curry after becoming a member and customer B purchased sushi.
+-- ANSW: Customer A purchased curry after becoming a member and customer B purchased sushi. Customer C did not become a member.
 
 -- Quick look at members chart:
 SELECT *
@@ -283,7 +347,7 @@ ORDER BY order_date ASC
 LIMIT 1;
 
 -- 7. Which item was purchased just before the customer became a member?
--- ANSW: Customer A purchased sushi before becoming a member and customer B purchased curry.
+-- ANSW: Customer A purchased sushi before becoming a member and customer B purchased curry. Customer C did not become a member.
 
 -- Quick look at members chart:
 SELECT *
@@ -314,7 +378,7 @@ ORDER BY order_date ASC
 LIMIT 1;
 
 -- 8. What is the total items and amount spent for each member before they became a member?
--- ANSW: Customer A purchased 2 items amounting to $25 before becoming a member. Customer B purchased 3 items amounting to $40.
+-- ANSW: Customer A purchased 2 items amounting to $25 before becoming a member. Customer B purchased 3 items amounting to $40. Customer C did not become a member.
 
 -- Sum of purchases made by customer A before membership
 WITH sales_w_menu AS(
@@ -355,3 +419,9 @@ WITH sales_w_menu AS(
 SELECT COUNT(order_date)
 FROM sales_w_menu
 WHERE customer_id = 'B' AND order_date < '2021-01-09T00:00:00.000Z';
+
+-- 9.  If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
+--ANSW:
+
+-- 10. In the first week after a customer joins the program (including their join date) they earn 2x points on all items, not just sushi - how many points do customer A and B have at the end of January?
+--ANSW: 
