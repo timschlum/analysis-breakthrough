@@ -123,14 +123,43 @@ VALUES
    --------------------*/
    
    -- Part 1 | Pizza Metrics
-   
-1. How many pizzas were ordered?
-2. How many unique customer orders were made?
-3. How many successful orders were delivered by each runner?
-4. How many of each type of pizza was delivered?
-5. How many Vegetarian and Meatlovers were ordered by each customer?
-6. What was the maximum number of pizzas delivered in a single order?
-7. For each customer, how many delivered pizzas had at least 1 change and how many had no changes?
-8. How many pizzas were delivered that had both exclusions and extras?
-9. What was the total volume of pizzas ordered for each hour of the day?
-10. What was the volume of orders for each day of the week?
+
+--1. How many pizzas were ordered?
+--ANSW: 14 pizzas were ordered.
+
+SELECT *
+FROM pizza_runner.customer_orders; 
+
+SELECT COUNT(order_id)
+FROM pizza_runner.customer_orders; 
+
+--2. How many unique customer orders were made?
+--ANSW: 10 distinct customer orders were made.
+
+SELECT COUNT(DISTINCT order_id)
+FROM pizza_runner.customer_orders;
+
+--3. How many successful orders were delivered by each runner?
+--ANSW:
+
+--4. How many of each type of pizza was delivered?
+--ANSW:
+
+--5. How many Vegetarian and Meatlovers were ordered by each customer?
+--ANSW:
+
+--6. What was the maximum number of pizzas delivered in a single order?
+--ANSW:
+
+--7. For each customer, how many delivered pizzas had at least 1 change and how many had no changes?
+--ANSW:
+
+--8. How many pizzas were delivered that had both exclusions and extras?
+--ANSW:
+
+--9. What was the total volume of pizzas ordered for each hour of the day?
+--ANSW:
+
+--10. What was the volume of orders for each day of the week?
+--ANSW:
+
