@@ -140,7 +140,25 @@ SELECT COUNT(DISTINCT order_id)
 FROM pizza_runner.customer_orders;
 
 --3. How many successful orders were delivered by each runner?
---ANSW:
+--ANSW: Runner 1 made 4 successful deliveries, runner 2 made 3 successful deliveries, and runner 3 made 1 successful delivery.
+
+UPDATE pizza_runner.runner_orders
+SET cancellation = 'False'
+WHERE cancellation = 'null' OR cancellation IS Null OR cancellation = '';
+
+UPDATE pizza_runner.runner_orders
+SET cancellation = 'True'
+WHERE cancellation = 'Restaurant Cancellation' OR cancellation = 'Customer Cancellation';
+
+CREATE TABLE successful_orders
+AS
+SELECT runner_id, COUNT(runner_id)
+FROM pizza_runner.runner_orders
+WHERE cancellation = 'False'
+GROUP BY runner_id;
+
+SELECT *
+FROM successful_orders;
 
 --4. How many of each type of pizza was delivered?
 --ANSW:
