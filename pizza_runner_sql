@@ -199,7 +199,44 @@ SELECT *
 FROM customer_hunger;
 
 --7. For each customer, how many delivered pizzas had at least 1 change and how many had no changes?
---ANSW:
+--ANSW: 7 of the delivered pizzas has at least 1 change. 6 of the delivered pizzas had no changes.
+
+--Cleaning the columns for exlusions, extras, and cancellations.
+UPDATE pizza_runner.customer_orders
+SET exclusions = Null
+WHERE exclusions = 'null' OR exclusions = '';
+
+UPDATE pizza_runner.customer_orders
+SET extras = Null
+WHERE extras = 'null' OR extras = '';
+
+UPDATE pizza_runner.runner_orders
+SET cancellation = 'False'
+WHERE cancellation = 'null' OR cancellation IS Null OR cancellation = '';
+
+UPDATE pizza_runner.runner_orders
+SET cancellation = 'True'
+WHERE cancellation = 'Restaurant Cancellation' OR cancellation = 'Customer Cancellation';
+
+--Finding which completed orders had at least one change
+WITH orders_master1 AS( 
+	SELECT *
+	FROM pizza_runner.customer_orders
+	JOIN pizza_runner.runner_orders
+		ON pizza_runner.customer_orders.order_id = pizza_runner.runner_orders.order_id)
+SELECT COUNT(*)
+FROM orders_master1
+WHERE cancellation = 'False' AND exclusions IS NOT Null OR extras IS NOT Null;
+
+--Finding which completed orders had at least no change
+WITH orders_master2 AS( 
+	SELECT *
+	FROM pizza_runner.customer_orders
+	JOIN pizza_runner.runner_orders
+		ON pizza_runner.customer_orders.order_id = pizza_runner.runner_orders.order_id)
+SELECT COUNT(*)
+FROM orders_master2
+WHERE cancellation = 'False' AND exclusions IS Null AND extras IS Null;
 
 --8. How many pizzas were delivered that had both exclusions and extras?
 --ANSW:
