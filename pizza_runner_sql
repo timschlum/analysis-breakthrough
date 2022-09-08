@@ -186,7 +186,17 @@ GROUP BY customer_id, pizza_name
 ORDER BY customer_id ASC;
 
 --6. What was the maximum number of pizzas delivered in a single order?
---ANSW:
+--ANSW: The maximum was 3 pizzas in order # 4.
+
+CREATE TABLE customer_hunger
+AS
+SELECT DISTINCT(order_id), COUNT(order_id)
+FROM pizza_runner.customer_orders
+GROUP BY order_id
+ORDER BY order_id ASC;
+
+SELECT *
+FROM customer_hunger;
 
 --7. For each customer, how many delivered pizzas had at least 1 change and how many had no changes?
 --ANSW:
