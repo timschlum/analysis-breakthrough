@@ -238,6 +238,8 @@ SELECT COUNT(*)
 FROM orders_master2
 WHERE cancellation = 'False' AND exclusions IS Null AND extras IS Null;
 
+--(In progress)--
+
 --8. How many pizzas were delivered that had both exclusions and extras?
 --ANSW:
 
