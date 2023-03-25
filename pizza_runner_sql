@@ -238,14 +238,3 @@ SELECT COUNT(*)
 FROM orders_master2
 WHERE cancellation = 'False' AND exclusions IS Null AND extras IS Null;
 
---(In progress)--
-
---8. How many pizzas were delivered that had both exclusions and extras?
---ANSW:
-
---9. What was the total volume of pizzas ordered for each hour of the day?
---ANSW:
-
---10. What was the volume of orders for each day of the week?
---ANSW:
-
